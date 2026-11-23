@@ -1,0 +1,3 @@
+#!/bin/sh
+# Valida el asunto del commit con las convenciones de Holdpoint (ver CLAUDE.md).
+exec python3 "$(git rev-parse --show-toplevel)/.githooks/convenciones.py" commit-msg "$1"
