@@ -8,7 +8,7 @@ version_editable: "https://claude.ai/artifact/VhWSsCsCHkp8AEGo2NNM8R"
 
 # Plan de arranque del TFM en Claude Code
 
-Este plan es la entrada de la primera sesión de Claude Code (CLI) en el repo del TFM: el agente lo lee y ejecuta la sesión 1. Las sesiones siguientes siguen la escaleta hasta la entrega 1, con envío el 3 de diciembre y fecha límite el 4.
+Este plan es la entrada de la primera sesión de Claude Code (CLI) en el repo del TFM: el agente lo lee y ejecuta la sesión 1. Las sesiones siguientes siguen la escaleta hasta la entrega 1, con envío el 3 de diciembre y fecha límite el 4. El calendario es justo: ante cualquier riesgo se recorta alcance, nunca la fecha.
 
 ## Contexto
 
@@ -20,6 +20,24 @@ La entrega 1 es solo documentación, sin código:
 - Se entrega con la rama `feature/entrega-1-fp` y el Typeform. No se abre ninguna pull request.
 - La revisión valora el problema y el caso de uso, que el MVP sea viable, la coherencia entre arquitectura, modelo de datos, API y tickets, y el uso de la IA en al menos 4 de las 6 fases del ciclo de vida.
 - Las reglas completas están en las lecciones 1 y 2 del curso. Si algo choca, manda la lección 1.
+
+## Alcance y calendario
+
+El calendario es justo: hay siete días para documentar con BMAD, del 26 de noviembre al 2 de diciembre. BMAD tiende a ampliar el alcance buscando calidad, y eso acaba en una bola de nieve. Estas reglas valen para todas las sesiones y van también en `CLAUDE.md`:
+
+1. **El alcance es el de la visión:** las cinco historias imprescindibles del MVP. Nada nuevo entra sin el visto bueno explícito de Francisco.
+2. **Lo que BMAD proponga fuera de alcance va a una lista de líneas futuras** en el PRD, no a la UX, la arquitectura ni las épicas.
+3. **Documentos proporcionados:** cada artefacto cubre solo lo que necesitan las cinco historias y la entrega 1. Mejor corto y coherente que completo.
+4. **Las fechas mandan.** Si una sesión se alarga, se recorta profundidad o alcance, nunca la fecha de entrega.
+5. **Sin extras por defecto:** en BMAD se elige el camino más ligero que produzca brief, PRD, UX, arquitectura e historias, y se dice que no a la elicitación avanzada, al party mode y a los pasos opcionales, salvo que Francisco los pida.
+
+**Si hay riesgo, se recorta en este orden:**
+
+1. Las deseables (freno automático por bucle y hook de Claude Code) quedan fuera del todo.
+2. La UX se queda en un listado de pantallas con su contenido, sin maquetas.
+3. La historia 5 se simplifica: un listado de la sesión en lugar de reproducción paso a paso.
+4. La historia 2 se simplifica: políticas manuales, sin propuesta inicial según el riesgo de cada herramienta.
+5. La aprobación en tiempo real (historia 3) y el supervisor (historia 4) no se recortan: son el núcleo y lo que diferencia el producto.
 
 ## Decisiones tomadas
 
@@ -34,6 +52,7 @@ La entrega 1 es solo documentación, sin código:
 | Artefactos de BMAD | Se quedan en su carpeta estándar (`_bmad-output/`) y con su estructura. `README.md` se compone a partir de ellos, y `docs/` solo guarda lo que BMAD no genera. |
 | Entrada de BMAD | La redacta el agente de la prueba de concepto al terminarla, con la visión y lo aprendido. |
 | Tickets | En GitHub Issues, creados por el agente a partir de las épicas e historias de BMAD: una épica por cada historia imprescindible. |
+| Seguimiento | Hitos de GitHub por entrega: Entrega 1, Entrega 2 y Entrega final. Desde la entrega 2, un Project de GitHub mínimo y público, con la columna de estado por defecto y sus flujos automáticos. BMAD manda sobre el estado de las historias y el tablero solo lo refleja. |
 | Registro de IA | `Prompts.md` lo mantiene el agente: un hook captura cada prompt y la skill `/registro-ia` redacta las entradas. El registro en bruto no se sube al repo. |
 | Material del curso | Las lecciones de LIDR no se suben al repo. |
 
@@ -87,7 +106,7 @@ Se ejecuta al final de la sesión 1, de la prueba de concepto, del brief y el PR
 
 1. `.gitignore` (`.registro-ia/`, `.env`, `bin/`, `obj/`, `node_modules/`) y `.editorconfig`.
 2. Instalar BMAD con `npx bmad-method install` (necesita Node 20.12+, Python 3.10+ y uv): módulo BMM, herramienta Claude Code, conversación y documentos en español, carpeta de salida por defecto. El instalador es interactivo: lo lanza Francisco en su terminal, o el agente en modo no interactivo con `--modules bmm --tools claude-code --communication-language Spanish --document-output-language Spanish --yes` (comprobar las opciones con `--help`). Verificar que la versión instalada es la 6.12.x.
-3. `CLAUDE.md`: qué es el proyecto en tres líneas, con enlaces a la visión y a este plan; dónde vive cada cosa; las ramas (`main` sin código hasta el 4 de diciembre y nunca abrir PR al repo de LIDR); nada de secretos, solo `.env.example`; documentos y commits en español; cuándo ejecutar `/registro-ia`; y que BMAD no se usa en la prueba de concepto.
+3. `CLAUDE.md`: qué es el proyecto en tres líneas, con enlaces a la visión y a este plan; dónde vive cada cosa; las ramas (`main` sin código hasta el 4 de diciembre y nunca abrir PR al repo de LIDR); nada de secretos, solo `.env.example`; documentos y commits en español; cuándo ejecutar `/registro-ia`; que BMAD no se usa en la prueba de concepto; y las reglas de «Alcance y calendario», copiadas tal cual.
 4. El registro de IA de la sección anterior: hook, script, skill y `cleanupPeriodDays`. Claude Code lee los hooks al arrancar, así que hay que reiniciar la sesión o revisarlos en `/hooks` para que entren en vigor.
 5. Primera entrada de `Prompts.md` con `/registro-ia`, a partir de la sección «Primera entrada de Prompts.md».
 6. Commit en `main` y push.
@@ -111,9 +130,9 @@ Se ejecuta al final de la sesión 1, de la prueba de concepto, del brief y el PR
 | 29-30 nov | 6. BMAD: épicas e historias, y tickets en GitHub Issues | Una épica por historia imprescindible; Issues etiquetados como backend, frontend y bd |
 | 1-2 dic | 7. Coherencia y README | Comprobación de readiness de BMAD, `README.md` compuesto y `Prompts.md` al día |
 | 3 dic | 8. Entrega | Rama `feature/entrega-1-fp` desde `main` y Typeform |
-| Desde el 4 dic | Entrega 2 | Fusionar `poc/pasarela` en `main` y empezar el esqueleto |
+| Desde el 4 dic | Entrega 2 | Fusionar `poc/pasarela` en `main`, empezar el esqueleto y crear el Project de GitHub |
 
-**Contenido de `docs/entrada-bmad.md`.** Lo redacta el agente de la sesión 2 como entrada del brief: resumen de la visión, resultados de la prueba de concepto y limitaciones encontradas (SDK, tiempos de espera), alcance y fuera de alcance del MVP, las cinco historias y lo que exige la entrega 1 (modelo de datos, API y tickets de backend, frontend y base de datos). Se guarda en `main`, porque es documentación y BMAD trabaja allí.
+**Contenido de `docs/entrada-bmad.md`.** Lo redacta el agente de la sesión 2 como entrada del brief: resumen de la visión, resultados de la prueba de concepto y limitaciones encontradas (SDK, tiempos de espera), alcance y fuera de alcance del MVP, las cinco historias, las reglas de «Alcance y calendario» y lo que exige la entrega 1 (modelo de datos, API y tickets de backend, frontend y base de datos). Se guarda en `main`, porque es documentación y BMAD trabaja allí.
 
 **De BMAD al README.** El README resume y enlaza los artefactos de BMAD; no los copia enteros.
 
