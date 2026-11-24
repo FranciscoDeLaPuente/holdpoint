@@ -8,7 +8,12 @@ var destino = builder.Configuration["Destino"] ?? "http://127.0.0.1:5100/mcp";
 
 // Cliente hacia el servidor de ejemplo, creado una vez y compartido.
 var cliente = new Lazy<Task<McpClient>>(() => McpClient.CreateAsync(
-    new HttpClientTransport(new HttpClientTransportOptions { Endpoint = new Uri(destino), Name = "servidor-ejemplo" })));
+    // HttpClient.Timeout vale 100 s por defecto y cortaría las esperas largas (comprobación 5).
+    new HttpClientTransport(
+        new HttpClientTransportOptions { Endpoint = new Uri(destino), Name = "servidor-ejemplo" },
+        new HttpClient { Timeout = Timeout.InfiniteTimeSpan },
+        loggerFactory: null,
+        ownsHttpClient: true)));
 
 builder.Services.AddMcpServer()
     .WithHttpTransport()

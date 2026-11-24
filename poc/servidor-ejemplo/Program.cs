@@ -18,8 +18,9 @@ public static class Tareas
     private static readonly object _cerrojo = new();
 
     [McpServerTool(Name = "listar_tareas", ReadOnly = true), Description("Lista las tareas existentes")]
-    public static string ListarTareas()
+    public static async Task<string> ListarTareas([Description("Segundos de retardo artificial (comprobación 5)")] int segundos = 0)
     {
+        if (segundos > 0) await Task.Delay(TimeSpan.FromSeconds(segundos));
         lock (_cerrojo) return string.Join("\n", _tareas.Select(t => $"{t.Id}: {t.Titulo}"));
     }
 
