@@ -138,7 +138,7 @@ El MVP está terminado cuando estas cinco comprobaciones se cumplen en la entreg
 
 | Fechas | Hito |
 | --- | --- |
-| 23 a 25 nov 2026 | Prueba de concepto |
+| 24 a 25 nov 2026 | Prueba de concepto |
 | 26 nov 2026 | Decisión: seguir con la torre de control o cambiar de propuesta |
 | 26 a 30 nov 2026 | Documentación de la entrega 1 |
 | 1 a 2 dic 2026 | Repaso de coherencia entre arquitectura, datos, API y tickets |
