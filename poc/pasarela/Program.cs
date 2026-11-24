@@ -1,0 +1,33 @@
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://127.0.0.1:5200");
+
+var destino = builder.Configuration["Destino"] ?? "http://127.0.0.1:5100/mcp";
+
+// Cliente hacia el servidor de ejemplo, creado una vez y compartido.
+var cliente = new Lazy<Task<McpClient>>(() => McpClient.CreateAsync(
+    new HttpClientTransport(new HttpClientTransportOptions { Endpoint = new Uri(destino), Name = "servidor-ejemplo" })));
+
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithListToolsHandler(async (ctx, ct) =>
+    {
+        var c = await cliente.Value;
+        var tools = await c.ListToolsAsync(cancellationToken: ct);
+        Console.WriteLine($"[pasarela] tools/list -> {tools.Count} herramientas");
+        return new ListToolsResult { Tools = tools.Select(t => t.ProtocolTool).ToList() };
+    })
+    .WithCallToolHandler(async (ctx, ct) =>
+    {
+        var c = await cliente.Value;
+        Console.WriteLine($"[pasarela] tools/call {ctx.Params!.Name} {System.Text.Json.JsonSerializer.Serialize(ctx.Params.Arguments)}");
+        var r = await c.CallToolAsync(ctx.Params, ct);
+        Console.WriteLine($"[pasarela] resultado isError={r.IsError}");
+        return r;
+    });
+
+var app = builder.Build();
+app.MapMcp("/mcp");
+app.Run();
