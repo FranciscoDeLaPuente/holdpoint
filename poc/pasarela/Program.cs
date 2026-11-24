@@ -21,6 +21,16 @@ builder.Services.AddMcpServer()
     })
     .WithCallToolHandler(async (ctx, ct) =>
     {
+        // Política de la prueba de concepto: las herramientas destructivas se bloquean.
+        if (ctx.Params!.Name == "borrar_tarea")
+        {
+            Console.WriteLine($"[pasarela] BLOQUEADA {ctx.Params.Name}");
+            return new CallToolResult
+            {
+                IsError = true,
+                Content = [new TextContentBlock { Text = "Bloqueada por política" }]
+            };
+        }
         var c = await cliente.Value;
         Console.WriteLine($"[pasarela] tools/call {ctx.Params!.Name} {System.Text.Json.JsonSerializer.Serialize(ctx.Params.Arguments)}");
         var r = await c.CallToolAsync(ctx.Params, ct);

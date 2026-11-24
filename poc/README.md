@@ -28,7 +28,7 @@ claude mcp add --transport http pasarela http://127.0.0.1:5200/mcp
 | 1 | Claude Code ve las herramientas a través de la pasarela | ✅ Verde |
 | 2 | Una llamada atraviesa la pasarela y el resultado vuelve | ✅ Verde |
 | 3 | La pasarela deja constancia de la llamada | ✅ Verde |
-| 4 | Error propio «bloqueada por política» | Pendiente |
+| 4 | Error propio «bloqueada por política» | ✅ Verde |
 | 5 | Tiempo de espera de Claude Code | Pendiente |
 
 ### 1 y 2
@@ -45,3 +45,11 @@ La pasarela escribe en consola una línea por cada `tools/list`, `tools/call` (c
 ```
 
 `isError` sale vacío cuando el servidor no lo marca (es `null`, no `false`). Solo consola, sin persistencia, como pide la comprobación.
+
+### 4
+
+La pasarela intercepta `borrar_tarea` y devuelve `CallToolResult { IsError = true }` con el texto «Bloqueada por política», sin llegar al servidor. En el log: `[pasarela] BLOQUEADA borrar_tarea`.
+
+Claude Code (modelo Haiku, en `claude -p`) lo interpreta como un error de la herramienta: no reintenta, vuelve a listar las tareas para comprobar que no se borró nada y explica al usuario que hay una política que lo impide. Con el texto neutro se obtiene la misma conducta que con uno que indicaba «no reintentes; informa al usuario», así que el mensaje no necesita instrucciones. Para la entrega 2, el texto puede incluir el motivo y el identificador de la aprobación.
+
+Sin probar aún: la reacción de otros modelos y el uso interactivo (no `-p`).
