@@ -1,0 +1,3 @@
+#!/bin/sh
+# Bloquea los commits directos en main (ver CLAUDE.md).
+exec python3 "$(git rev-parse --show-toplevel)/.githooks/convenciones.py" pre-commit
