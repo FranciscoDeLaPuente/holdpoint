@@ -10,6 +10,8 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 | --- | --- |
 | Claude en claude.ai (proyecto «ai4devs -TFM», con las lecciones del curso como fuentes) | Análisis previo: elección de la idea, visión de producto y plan de arranque |
 | Claude Code (CLI) en WSL | Trabajo en el repositorio: arnés, prueba de concepto, documentación con BMAD y, en la entrega 2, el código |
+| GitHub CLI (`gh`), lanzado desde Claude Code | Etiquetas, Issues y hitos del repositorio (la API de hitos con `gh api`) |
+| `tmux` y `claude -p`, lanzados desde Claude Code | Probar la pasarela con un Claude Code real, en modo no interactivo y en una sesión interactiva |
 | BMAD Method 6.12.4 (módulo BMM) | Método para brief, PRD, UX, arquitectura, épicas e historias, a partir de la sesión 3 |
 
 **Modelos**
@@ -17,13 +19,15 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 | Modelo | Tareas |
 | --- | --- |
 | Claude Opus 5.5 | Análisis previo en claude.ai y sesión 1 en Claude Code (84 respuestas). Previsto para razonar: brief, PRD, UX, arquitectura y revisión de código |
-| Claude Sonnet | Previsto para generar código y tareas mecánicas (Issues, `/registro-ia`) |
+| Claude Sonnet 5.5 | Prueba de concepto en Claude Code (228 respuestas): servidor de ejemplo y pasarela en .NET, Issue, etiquetas e hitos con `gh`, pruebas, `CLAUDE.md` y `docs/entrada-bmad.md`. Previsto también para Issues y `/registro-ia` |
+| Claude Haiku 5.5 | Solo como cliente de prueba: el Claude Code que se conectaba a la pasarela en las comprobaciones (67 respuestas). No generó código del repo |
 
 **Contexto avanzado**
 
 - `CLAUDE.md`: resumen del proyecto, alcance del MVP, calendario, reglas (`main` sin código hasta el 4 de diciembre, nada de PR ni de secretos), convenciones de ramas y commits y cuándo actualizar este registro.
 - Skills propias: `/registro-ia` (redacta este fichero, con Sonnet) y `/revision-adversarial` (revisión hostil del diff de la rama, con Opus y en contexto aislado).
 - Hooks: `UserPromptSubmit` captura cada prompt en `.registro-ia/`; `PreToolUse` bloquea ramas y commits que no siguen las convenciones; el hook `commit-msg` de git valida también los commits manuales. Las reglas viven en un solo fichero, `.githooks/convenciones.py`.
+- En la prueba de concepto los hooks hicieron su trabajo: bloquearon cinco intentos de commit con el asunto de más de 72 caracteres, y hubo que acortarlos.
 - BMAD 6.12.4 instalado con 29 skills para Claude Code, conversación y documentos en español.
 
 **Fases del ciclo de vida**
@@ -32,8 +36,8 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 | --- | --- |
 | Análisis | Cubierta: matriz de nueve ideas y visión de producto (claude.ai) |
 | Diseño | Cubierta en parte: plan de arranque y estructura del repositorio. Arquitectura, modelo de datos y API con BMAD (sesiones 3 a 6) |
-| Implementación | Prevista: prueba de concepto (sesión 2) y entrega 2 |
-| Pruebas | Prevista: `/revision-adversarial` y tests E2E de la entrega final |
+| Implementación | Cubierta en parte: prueba de concepto (servidor de ejemplo y pasarela en .NET 10). El código funcional llega en la entrega 2 |
+| Pruebas | Iniciada: ocho comprobaciones de la prueba de concepto contra un Claude Code real (`-p` e interactivo). Previstas: `/revision-adversarial` y tests E2E de la entrega final |
 | Despliegue | Prevista: docker-compose en la entrega 2 |
 | Mantenimiento | Iniciada: hooks que hacen cumplir las convenciones y registro automático de la IA |
 
@@ -79,6 +83,39 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 - Eligió las convenciones propuestas: ramas `<tipo>/<slug>`, Conventional Commits en español y validación de commits doble (Claude Code y `commit-msg` de git). Dio la URL del repo de la plantilla y aprobó renombrar `master` a `main`.
 
 **Commits:** commit de cierre de la sesión 1 en `main`.
+
+### 2026-11-24 · Prueba de concepto de la pasarela
+
+**Qué se hizo:** un servidor MCP de ejemplo (`listar_tareas`, solo lectura, y `borrar_tarea`, destructiva) y una pasarela que hace de servidor para Claude Code y de cliente del servidor de ejemplo, en .NET 10 con el SDK oficial `ModelContextProtocol.AspNetCore` 2.4.0, por HTTP. Las cinco comprobaciones de «Supuestos a validar» salieron en verde (la quinta, medida: Claude Code corta a los 60 s). Después, las tres pruebas del cierre: las notificaciones de progreso reinician el límite de 60 s (P1), Claude Code declara la extensión de Tasks de MCP (P2) y el uso interactivo funciona igual, con matices de interfaz (P3). Además: etiquetas, hitos e Issue #1 en GitHub, las reglas de «Alcance y calendario» en `CLAUDE.md`, la revisión de coherencia de `CLAUDE.md`, y `docs/entrada-bmad.md` con resultados, hallazgos, caminos para la espera y estados de la llamada retenida. El Issue #1 quedó cerrado. La decisión de seguir con Holdpoint sigue pendiente de Francisco.
+
+**Herramienta y modelos:** Claude Code (CLI) en WSL con Claude Sonnet 5.5 (228 respuestas en la sesión). Claude Haiku 5.5 (67 respuestas) solo como cliente de prueba. La preparación del prompt se hizo antes en claude.ai.
+
+**Prompts clave:**
+
+1. «Sesión 2 del plan (docs/plan-arranque.md): prueba de concepto. Crea la rama poc/pasarela y trabaja solo en poc/. Sin BMAD, en vibe coding. […] Usa el SDK oficial de MCP para C#. Antes de escribir código, comprueba en el paquete instalado o en sus ejemplos oficiales cómo se llaman de verdad las clases y los métodos de esa versión. Si algo no existe, para y dímelo; no lo inventes. […]» → Servidor de ejemplo y pasarela. Los nombres se comprobaron en la documentación XML del paquete antes de escribir código; el único error de compilación en toda la prueba fue un `using` que faltaba.
+2. «Antes de seguir: crea las etiquetas poc, backend, frontend y bd en GitHub con gh, y un Issue «Prueba de concepto de la pasarela» con la etiqueta poc, el objetivo, el enlace a «Supuestos a validar» de la visión y las cinco comprobaciones como lista de tareas. Referencia el Issue en todos los commits de poc/pasarela y marca cada comprobación cuando quede verificada.» → Cuatro etiquetas, el Issue #1 y los cuatro commits existentes reescritos con `Refs #1`.
+3. «comprueba que claude.md no tenga reglas repetidas, analiza coherencia» → Informe con cinco solapes y tres incoherencias. La principal: la regla de modelos exigía `model:` en las skills, pero solo 2 de las 31 skills del repo lo llevan y las de BMAD no se editan. La corrección posterior («los modelos se fijaran en las skills que no sean de BMAD y/o escogiendolo en la sesion») deja la regla aplicable.
+4. «lee poc/cierre-poc.md y ejecuta las tres pruebas pendientes, con una hora como máximo y el cierre» → P1 a P3 en unos 17 minutos (con una sesión interactiva manejada desde `tmux`), `docs/entrada-bmad.md` en `main` y el Issue #1 comentado y cerrado.
+
+**Criterio humano:**
+
+- Iniciativas de Francisco:
+    - Llevar la prueba en GitHub desde el principio: Issue con las comprobaciones, etiquetas y un Project público. El Project es público para facilitar el acceso al revisor: [Holdpoint](https://github.com/users/FranciscoDeLaPuente/projects/2).
+    - Pedir un documento de cierre con pruebas adicionales en lugar de dar la prueba por cerrada tras la comprobación 5.
+    - Hacer la prueba en vibe coding y sin BMAD, para que no hubiera ceremonia (decidido al planificar).
+- Propuestas de Claude en claude.ai que revisó y aceptó:
+    - El prompt de la sesión: comprobar la API real del SDK antes de escribir código, dos herramientas en el servidor de ejemplo, prueba mínima sin base de datos, panel, tests ni Docker, y probar desde una sesión de Claude Code aparte.
+    - Los hitos por entrega.
+    - Las pruebas P1 a P3, con un límite de una hora.
+- Decisiones tomadas durante la sesión, con su porqué:
+    - Fijar la prueba de concepto el 24-25 de noviembre en toda la documentación: es lo primero que hay que hacer, porque es el estudio de viabilidad y determina la continuidad del proyecto.
+    - Copiar las reglas de «Alcance y calendario» a `CLAUDE.md`: el alcance y el calendario son críticos en este proyecto. El calendario es la primera prioridad y, si corre riesgo, se recorta el alcance. Debe tenerse siempre presente.
+    - Fijar los modelos en las skills propias o al abrir la sesión: economía de tokens, sin usar modelos más complejos de lo necesario. Es normal que el modelo de la sesión se quede sin cambiar por olvido, y fijarlo en las skills garantiza un uso racional.
+
+**Commits:**
+
+- `poc/pasarela` (reescritos para añadir `Refs #1`): `32a4032` pasarela que reenvía las llamadas; `6193c7c` comprobaciones 1, 2 y 3; `0ed7fda` bloqueo de `borrar_tarea`; `16ba7ea` tiempo de espera de Claude Code; `0e79b51` progreso y capacidades del cliente; `78c692c` resultados de P1 a P3; `5d2b4d8` integración de `main`.
+- `main`: `32fee00` reglas de `CLAUDE.md`; `65385a4` plan y visión; `b452263` `docs/entrada-bmad.md`.
 
 ## Índice
 
