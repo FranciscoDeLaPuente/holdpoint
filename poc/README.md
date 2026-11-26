@@ -120,4 +120,6 @@ Sesión `claude` interactiva (con `tmux`, Haiku, modo auto activado) contra la p
 
 ## Decisión del 26 de noviembre
 
-Las comprobaciones 1 a 4 están en verde, la 5 está medida y las tres pruebas de cierre están hechas: la prueba de concepto no impide seguir con la torre de control. La decisión es de Francisco.
+Las comprobaciones 1 a 4 están en verde, la 5 está medida y las tres pruebas de cierre están hechas: la prueba de concepto no impide seguir con la torre de control.
+
+**Decisión (26 de noviembre de 2026): se sigue con Holdpoint.** Quedó anotada en el Issue #1, ya cerrado. Esta rama no se integra en `main` hasta después de la entrega 1 (4 de diciembre).
