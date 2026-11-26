@@ -25,3 +25,7 @@ Thumbs.db
 
 # BMAD: respuestas personales del instalador
 _bmad/config.user.toml
+
+# Python (hooks)
+__pycache__/
+*.pyc

@@ -61,6 +61,8 @@ El calendario es justo: hay siete días para documentar con BMAD, del 26 de novi
 
 Formato: `main`, `feature/entrega-N-fp` (la de LIDR) o `<tipo>/<slug-en-kebab-case>`, con el número de Issue opcional al principio del slug: `feature/12-registrar-servidor`, `fix/34-timeout-espera`, `docs/arquitectura`. Los tipos permitidos están en `.githooks/convenciones.py`.
 
+**No se commitea directamente en `main`.** Cada cambio va en una rama (`docs/...`, `chore/...`) y se integra en `main` con `git merge --no-ff <rama>` en local, sin pull request. Los merges sí se permiten en `main`; los commits, no.
+
 ## Commits
 
 Conventional Commits: `<tipo>(<ámbito opcional>): <descripción>`.
@@ -70,8 +72,11 @@ Conventional Commits: `<tipo>(<ámbito opcional>): <descripción>`.
 
 **Cómo se hacen cumplir.** Las reglas están en un solo sitio, `.githooks/convenciones.py`; este fichero no las copia, para que no se desincronicen:
 
-- Hook `PreToolUse` de Claude Code: bloquea los `git checkout -b`, `git switch -c`, `git branch` y `git commit -m` que no cumplan.
-- Hook `commit-msg` de git: valida todos los commits, también los manuales. Tras clonar hay que activarlo una vez con `git config core.hooksPath .githooks`.
+- Hook `PreToolUse` de Claude Code: bloquea los `git checkout -b`, `git switch -c`, `git branch` y `git commit -m` que no cumplan, y cualquier `git commit` estando en `main`.
+- Hook `commit-msg` de git: valida todos los commits, también los manuales.
+- Hook `pre-commit` de git: rechaza los commits directos en `main`, también los manuales. Solo una persona, en su terminal, puede saltárselo con `HOLDPOINT_PERMITIR_MAIN=1`; el hook de Claude Code bloquea cualquier comando que mencione esa variable.
+
+Los hooks de git (`commit-msg` y `pre-commit`) se activan una vez tras clonar con `git config core.hooksPath .githooks`.
 
 ## Registro de IA
 

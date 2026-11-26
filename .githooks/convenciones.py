@@ -5,21 +5,30 @@ Un único sitio para las reglas, con tres usos:
 
   convenciones.py hook-claude        Hook PreToolUse (Bash) de Claude Code. Lee el JSON
                                      por stdin; si el comando crea una rama o hace un
-                                     commit con un nombre o mensaje inválido, sale con
-                                     código 2 y explica el formato por stderr.
+                                     commit con un nombre o mensaje inválido, o hace un
+                                     commit directo en main, sale con código 2 y lo
+                                     explica por stderr.
   convenciones.py commit-msg <fich>  Hook commit-msg de git (lo llama .githooks/commit-msg).
+  convenciones.py pre-commit         Hook pre-commit de git: bloquea los commits directos
+                                     en main (los merges, no).
   convenciones.py rama <nombre>      Valida un nombre de rama (pruebas manuales).
   convenciones.py asunto <texto>     Valida el asunto de un commit (pruebas manuales).
 """
 
 import json
+import os
 import re
 import shlex
+import subprocess
 import sys
 
 TIPOS_RAMA = ("poc", "feature", "fix", "docs", "chore", "refactor", "test", "ci")
 TIPOS_COMMIT = ("feat", "fix", "docs", "chore", "refactor", "test", "ci", "build", "perf")
 MAX_ASUNTO = 72
+RAMA_PROTEGIDA = "main"
+# Salida de emergencia, solo para una persona en su terminal: el hook de Claude Code
+# bloquea cualquier comando que la mencione.
+VAR_PERMITIR_MAIN = "HOLDPOINT_PERMITIR_MAIN"
 
 RE_RAMA = re.compile(
     r"^(main"
@@ -48,6 +57,11 @@ AYUDA_COMMIT = (
     "  Refs #n del Issue en el cuerpo, si aplica"
 )
 
+AYUDA_MAIN = (
+    f"No se commitea directamente en {RAMA_PROTEGIDA}: crea una rama (<tipo>/<slug>), haz ahí el\n"
+    f"commit e intégrala con «git merge --no-ff <rama>» (sin pull request). Los merges sí se permiten."
+)
+
 
 def error_rama(nombre):
     """Devuelve el motivo del rechazo, o None si el nombre es válido."""
@@ -71,6 +85,24 @@ def error_asunto(asunto):
     if desc.endswith("."):
         return f"La descripción termina en punto: «{desc}».\n{AYUDA_COMMIT}"
     return None
+
+
+def git(args, cwd=None):
+    """Salida de un comando git, o None si falla (no es un repo, git no instalado...)."""
+    try:
+        r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def en_rama_protegida(cwd=None):
+    return git(["rev-parse", "--abbrev-ref", "HEAD"], cwd) == RAMA_PROTEGIDA
+
+
+def merge_en_curso(cwd=None):
+    """Un commit que cierra un merge con conflictos es legítimo en main."""
+    return git(["rev-parse", "-q", "--verify", "MERGE_HEAD"], cwd) is not None
 
 
 # --- Análisis de comandos de shell -------------------------------------------------
@@ -166,9 +198,12 @@ def mensaje_commit(args):
     return None
 
 
-def revisar_comando(comando):
+def revisar_comando(comando, cwd=None):
     """Lista de errores de convención en un comando de shell."""
     errores = []
+    if VAR_PERMITIR_MAIN in comando:
+        return [f"El comando menciona {VAR_PERMITIR_MAIN}: esa salida de emergencia es solo "
+                f"para una persona en su terminal.\n{AYUDA_MAIN}"]
     try:
         partes = segmentos(comando)
     except ValueError:
@@ -179,11 +214,17 @@ def revisar_comando(comando):
             if e:
                 errores.append(e)
         return errores
+    rama_incierta = False  # tras un checkout/switch no se sabe en qué rama se hace el commit
     for tokens in partes:
         r = subcomando_git(tokens)
         if not r:
             continue
         sub, args = r
+        if sub in ("checkout", "switch", "worktree", "reset", "rebase"):
+            rama_incierta = True
+        if (sub == "commit" and not rama_incierta and en_rama_protegida(cwd)
+                and not merge_en_curso(cwd)):
+            errores.append(AYUDA_MAIN)
         for nombre in ramas_creadas(sub, args):
             e = error_rama(nombre)
             if e:
@@ -205,9 +246,10 @@ def hook_claude():
     try:
         datos = json.load(sys.stdin)
         comando = datos.get("tool_input", {}).get("command", "")
+        cwd = datos.get("cwd") or None
     except Exception:
         return 0  # Si no se puede leer la entrada, no se bloquea.
-    errores = revisar_comando(comando)
+    errores = revisar_comando(comando, cwd)
     if errores:
         print("Bloqueado por las convenciones del repo (ver CLAUDE.md):\n"
               + "\n\n".join(errores), file=sys.stderr)
@@ -226,9 +268,20 @@ def commit_msg(fichero):
     return 0
 
 
+def pre_commit():
+    if os.environ.get(VAR_PERMITIR_MAIN) == "1":
+        return 0
+    if en_rama_protegida() and not merge_en_curso():
+        print(AYUDA_MAIN, file=sys.stderr)
+        return 1
+    return 0
+
+
 def main(argv):
     if len(argv) >= 2 and argv[1] == "hook-claude":
         return hook_claude()
+    if len(argv) == 2 and argv[1] == "pre-commit":
+        return pre_commit()
     if len(argv) == 3 and argv[1] == "commit-msg":
         return commit_msg(argv[2])
     if len(argv) == 3 and argv[1] in ("rama", "asunto"):
