@@ -3,12 +3,12 @@ titulo: "Entrada de BMAD: Holdpoint, torre de control para agentes de IA"
 proyecto: "Holdpoint (TFM AI4Devs, LIDR)"
 autor: "Francisco de la Puente González"
 fecha: 2026-11-24
-estado: "Entrada del brief y el PRD. Prueba de concepto terminada; decisión de seguir pendiente"
+estado: "Entrada del brief y el PRD. Prueba de concepto terminada; el 26 de noviembre de 2026 se decidió seguir con Holdpoint"
 ---
 
 # Entrada de BMAD: Holdpoint
 
-Este documento es la entrada del brief y el PRD (sesión 3). Resume la visión, lo que enseñó la prueba de concepto y lo que exige la entrega 1. Es corto a propósito: manda [la visión de producto](vision/vision-producto.md) y, en el calendario, [el plan](plan-arranque.md).
+Este documento es la entrada del brief y el PRD (sesión 3). **El 26 de noviembre de 2026 se decidió seguir con Holdpoint.** Resume la visión, lo que enseñó la prueba de concepto y lo que exige la entrega 1. Es corto a propósito: manda [la visión de producto](vision/vision-producto.md) y, en el calendario, [el plan](plan-arranque.md).
 
 ## 1. Visión en breve
 
