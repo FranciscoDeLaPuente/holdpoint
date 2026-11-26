@@ -18,8 +18,8 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 | Modelo | Tareas |
 | --- | --- |
-| Claude Opus 5.5 | Análisis previo en claude.ai y sesión 1 en Claude Code (84 respuestas). Previsto para razonar: brief, PRD, UX, arquitectura y revisión de código |
-| Claude Sonnet 5.5 | Prueba de concepto en Claude Code (228 respuestas): servidor de ejemplo y pasarela en .NET, Issue, etiquetas e hitos con `gh`, pruebas, `CLAUDE.md` y `docs/entrada-bmad.md`. Previsto también para Issues y `/registro-ia` |
+| Claude Opus 5.5 | Análisis previo en claude.ai, sesión 1 en Claude Code (84 respuestas) y sesión 3, brief y PRD con BMAD (129 respuestas, más 6 subagentes de revisión). Previsto también para UX, arquitectura y revisión de código |
+| Claude Sonnet 5.5 | Prueba de concepto en Claude Code (228 respuestas): servidor de ejemplo y pasarela en .NET, Issue, etiquetas e hitos con `gh`, pruebas, `CLAUDE.md` y `docs/entrada-bmad.md`. En la sesión 3, las 8 primeras respuestas antes de cambiar a Opus y el subagente que buscó y comparó alternativas en la web. Previsto también para Issues y `/registro-ia` |
 | Claude Haiku 5.5 | Solo como cliente de prueba: el Claude Code que se conectaba a la pasarela en las comprobaciones (67 respuestas). No generó código del repo |
 
 **Contexto avanzado**
@@ -29,12 +29,14 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 - Hooks: `UserPromptSubmit` captura cada prompt en `.registro-ia/`; `PreToolUse` bloquea ramas y commits que no siguen las convenciones; el hook `commit-msg` de git valida también los commits manuales. Las reglas viven en un solo fichero, `.githooks/convenciones.py`.
 - En la prueba de concepto los hooks hicieron su trabajo: bloquearon cinco intentos de commit con el asunto de más de 72 caracteres, y hubo que acortarlos.
 - BMAD 6.12.4 instalado con 29 skills para Claude Code, conversación y documentos en español.
+- En la sesión 3 se usaron `bmad-product-brief`, `bmad-prd` y `bmad-review` (lentes de estructura y redacción). Cada artefacto lleva una `.memlog.md` con todas las decisiones y un anexo con el detalle técnico para los pasos siguientes. Las búsquedas y revisiones se hicieron con subagentes en contexto aislado: búsqueda de alternativas en la web, contraste del PRD con sus entradas y revisión con la lista de calidad de BMAD.
+- Un hook `pre-commit` de git y el `PreToolUse` de Claude Code rechazan los commits directos en `main`; los cambios se integran con `git merge --no-ff`.
 
 **Fases del ciclo de vida**
 
 | Fase | Estado |
 | --- | --- |
-| Análisis | Cubierta: matriz de nueve ideas y visión de producto (claude.ai) |
+| Análisis | Cubierta: matriz de nueve ideas y visión de producto (claude.ai); brief con comparación de alternativas y PRD con 23 requisitos funcionales (BMAD) |
 | Diseño | Cubierta en parte: plan de arranque y estructura del repositorio. Arquitectura, modelo de datos y API con BMAD (sesiones 3 a 6) |
 | Implementación | Cubierta en parte: prueba de concepto (servidor de ejemplo y pasarela en .NET 10). El código funcional llega en la entrega 2 |
 | Pruebas | Iniciada: ocho comprobaciones de la prueba de concepto contra un Claude Code real (`-p` e interactivo). Previstas: `/revision-adversarial` y tests E2E de la entrega final |
@@ -117,6 +119,33 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 - `poc/pasarela` (reescritos para añadir `Refs #1`): `32a4032` pasarela que reenvía las llamadas; `6193c7c` comprobaciones 1, 2 y 3; `0ed7fda` bloqueo de `borrar_tarea`; `16ba7ea` tiempo de espera de Claude Code; `0e79b51` progreso y capacidades del cliente; `78c692c` resultados de P1 a P3; `5d2b4d8` integración de `main`.
 - `main`: `32fee00` reglas de `CLAUDE.md`; `65385a4` plan y visión; `b452263` `docs/entrada-bmad.md`.
 
+### 2026-11-26 y 27 · Sesión 3: brief y PRD con BMAD
+
+**Qué se hizo:** antes de empezar, un hook `pre-commit` y una regla en el `PreToolUse` que impiden los commits directos en `main`. Después, el brief con `bmad-product-brief`, partiendo de `docs/entrada-bmad.md` y la visión: problema, solución, diferenciación frente a siete alternativas reales buscadas en la web (arbit, McpVanguard, Docker MCP Gateway, Permit, TrueFoundry, Consul y los permisos de Claude Code), usuarios, criterios de éxito, alcance y visión. Y el PRD con `bmad-prd`: cuatro recorridos de usuario, glosario, 23 requisitos funcionales en ocho funcionalidades, cinco no funcionales, métricas con contramétricas, orden de recorte, líneas futuras y cuatro preguntas abiertas para la arquitectura. El cierre de cada documento pasó por revisiones en subagentes aislados (contraste con las entradas, lista de calidad de BMAD y pulido de estructura y redacción), y se aplicaron sus hallazgos con el visto bueno de Francisco.
+
+**Herramienta y modelos:** Claude Code (CLI) en WSL con BMAD 6.12.4. Claude Opus 5.5 en la sesión (129 respuestas) y en seis subagentes de revisión; Claude Sonnet 5.5 en las 8 primeras respuestas, hasta cambiar de modelo con `/model`, y en el subagente de búsqueda de alternativas.
+
+**Prompts clave:**
+
+1. «1. En mi opinion la diferencia la marca la ligereza del proyecto. Conbinado con que es libre y de código abierto. La combinación de la revisión humana, el revisor de intención con LLM, y el sistema de politicas ofrece control seguridad y agilidad. No conozco bien los productos del mercado. Delego en ti que los revises y compares con nuestra oferta. […]» → Búsqueda de alternativas en un subagente y la sección «Qué lo diferencia» del brief: ninguna pieza es nueva por separado; lo distintivo es integrarlas en un producto abierto y ligero.
+2. «en el último punto ¿podriamos encajar distribuir harness a los agentes? […] ¿es tecnicamente posible?» y, poco después, «tengo una duda, lo de la "distribución de arnes" ahora que lo veo no me gusta tanto. parece un añadido poco integrado. tengo la sensación de que nos desvia del objetivo real» → La idea entró en la visión del brief y se retiró: trata de configurar al agente, no de controlar lo que hace.
+3. «no entiendo la limitacion de un equipo de desarrollo ¿de donde viene ese limite?» → El agente reconoció que el límite de «un solo equipo» lo había deducido él. El PRD pasó a decir el límite real: sin aislamiento entre equipos o empresas.
+4. «me gusta 1, pero eso nos lleva a un sistema de registro» (sobre identificar a cada agente con una credencial) y «los agentes ahora usaran un token y en el futuro se gestionaran desde el panel» → FR-10: agentes definidos en la configuración, sin pantalla de alta, y su gestión desde el panel como línea futura.
+
+**Criterio humano:**
+
+- Bloquear los commits directos en `main`: «red de seguridad, costumbre, disciplina». Aunque trabaje una sola persona, las ramas separan el trabajo y permiten llevar dos áreas a la vez sin mezclar el código. También son una red de seguridad frente a los agentes: no sería la primera vez que hay que tirar el trabajo por una deriva caótica, y no mezclarlo con la rama principal hasta estar seguro es lo mejor en todos los sentidos.
+- Diferenciación: la ligereza y que sea libre y de código abierto; la comparación con el mercado se delegó en el agente.
+- Lector del brief: además del tribunal, la comunidad open source. Todo proyecto abierto es candidato a ser mejorado y aprovechado por la comunidad; ese es el sentido del software libre.
+- Retiró la «distribución del arnés» de la visión, que él mismo había propuesto, porque desviaba del objetivo real.
+- Al leer el PRD detectó un límite que no venía de las fuentes (un solo equipo de desarrollo) y lo hizo corregir. También comprobó contra el brief que «las de solo lectura pasan directas» venía de la visión, lo que llevó a añadir en FR-7 que las anotaciones de MCP son pistas y no garantías.
+- Quitó el límite de retardo de 100 ms: es un hándicap para un MVP y una decisión demasiado arbitraria. El retardo deseable es el menor posible, pero el soportable se sabrá más adelante.
+- Eligió español con los textos preparados para traducir: dejar la base lista es barato; introducirla con el producto lanzado es caro y engorroso, y añadir idiomas después también es barato.
+- No validó las líneas futuras que había añadido el agente (detectar cambios en las herramientas y exportar el registro): uno de los sentidos del MVP es que el propio cliente ayude a orientar la evolución del producto, y tenerlo todo decidido ocupa el backlog y restringe lo que el cliente demanda.
+- Eligió tres roles fijos con usuarios de prueba, retener la llamada si no hay objetivo o si el supervisor falla, y una espera máxima de 5 minutos configurable.
+
+**Commits:** `d993b5c` bloquea los commits directos en `main`; `a656e36` y `d0dfcce` anotan la decisión de seguir con Holdpoint; `f5db510` brief de producto y su anexo; `2d0d134` PRD y su anexo, en la rama `docs/brief-prd`.
+
 ## Índice
 
 1. [Descripción general del producto](#1-descripción-general-del-producto)
@@ -131,9 +160,9 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ## 1. Descripción general del producto
 
-**Prompt 1:**
+**Prompt 1:** (sesión 3, brief con BMAD) «1. En mi opinion la diferencia la marca la ligereza del proyecto. Conbinado con que es libre y de código abierto. […] Delego en ti que los revises y compares con nuestra oferta. […]» → sección «Qué lo diferencia» del brief, con siete alternativas comparadas.
 
-**Prompt 2:**
+**Prompt 2:** (sesión 3) «tengo una duda, lo de la "distribución de arnes" ahora que lo veo no me gusta tanto. parece un añadido poco integrado. tengo la sensación de que nos desvia del objetivo real» → la visión del brief se queda en controlar lo que hacen los agentes.
 
 **Prompt 3:**
 
@@ -213,7 +242,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ### 5. Historias de Usuario
 
-**Prompt 1:**
+**Prompt 1:** (sesión 3, PRD con BMAD) «los agentes ahora usaran un token y en el futuro se gestionaran desde el panel» → FR-10 del PRD: agentes con credencial fija en la configuración y su gestión desde el panel como línea futura.
 
 **Prompt 2:**
 
